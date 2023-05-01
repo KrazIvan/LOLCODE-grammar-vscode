@@ -1,0 +1,143 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	  "name": "LOLCODE",
+  "scopeName": "source.lolcode",
+  "fileTypes": ["lol"],
+  "patterns": [
+      {
+          "include": "#comments"
+      },
+      {
+          "include": "#keywords"
+      },
+      {
+          "include": "#strings"
+      },
+      {
+          "include": "#numbers"
+      },
+      {
+          "include": "#variables"
+      },
+      {
+          "include": "#operators"
+      },
+      {
+          "include": "#parentheses"
+      }
+  ],
+  "repository": {
+      "comments": {
+		"patterns": [
+			{
+				"match": "(?<!\\S)BTW(?:[^\\n]*)",
+				"name": "comment.line.lolcode"
+			},
+			{
+				"begin": "(?<!\\S)OBTW(?!\\S)",
+				"beginCaptures": {
+					"0": {
+						"name": "punctuation.definition.comment.lolcode"
+					}
+				},
+				"end": "(?<!\\S)TLDR(?!\\S)",
+				"endCaptures": {
+					"0": {
+						"name": "punctuation.definition.comment.lolcode"
+					}
+				},
+				"name": "comment.block.lolcode"
+			}
+		]
+	},
+      "keywords": {
+          "patterns": [
+              {
+                  "match": "(?:(?<=[^a-zA-Z0-9\\?])|(?:^))(HAI|KTHXBYE|WIN|FAIL|IS NOW A|ITZ A|ITZ|IS|IZ|AN|BIGGR|SMALLR|BOTH|EITHER|MAEK|WON|NOT|ALL|ANY|MKAY|IF U SAY SO|OIC|I HAS A|IM OUTTA YR|GTFO|WTF\\?|YA RLY|O RLY\\?|IM IN YR|YR|HAS A|NO WAI|FOUND|OF|R|I IZ|OMG|OMGWTF|A)(?:(?=[^a-zA-Z0-9\\?])|(?:$))",
+                  "name": "keyword.control.lolcode"
+              },
+			  {
+                  "match": "(CAN HAS )(.*?)(\\?)",
+				  "captures": {
+					"1": {
+						"name": "keyword.control.lolcode"
+					},
+					"3": {
+						"name": "keyword.control.lolcode"
+					}
+				  }
+              },
+              {
+                  "match": "\\b(?:VISIBLE|GIMMEH|SUM|DIFF|PRODUKT|QUOSHUNT|MOD|BOTH SAEM|DIFFRINT|BIGGER THAN|SMALLER THAN|SMOOSH)\\b",
+                  "name": "support.function.lolcode"
+              },
+			  {
+                  "match": "\\b(?:HOW IZ I|HOW DUZ I)\\b",
+                  "name": "storage.type.function.lolcode"
+              },
+              {
+                  "match": "\\b(?:TROOF|NUMBR|NUMBAR|YARN|BUKKIT|NOOB)\\b",
+                  "name": "storage.type.lolcode"
+              }
+          ]
+      },
+      "strings": {
+          "patterns": [
+              {
+                  "match": "(\"(?:\\\\.|[^\"\\\\])*\")|('(?:\\\\.|[^'\\\\])*')",
+                  "captures": {
+                      "1": {
+                          "name": "string.quoted.double.lolcode"
+                      },
+                      "2": {
+                          "name": "string.quoted.single.lolcode"
+                      }
+                  }
+              }
+          ]
+      },
+      "numbers": {
+          "patterns": [
+              {
+                  "match": "\\b\\d+\\.\\d+\\b",
+                  "name": "constant.numeric.float.lolcode"
+              },
+              {
+                  "match": "\\b\\d+\\b",
+                  "name": "constant.numeric.integer.lolcode"
+              }
+          ]
+      },
+		"variables": {
+			"patterns": [
+				{
+					"match": "(?<=\\b)([A-Za-z][A-Za-z0-9_]*)\\b",
+					"name": "variable.other.lolcode"
+				},
+				{
+					"match": "(?<=CAN HAS )(\\w*)(?=\\?)",
+					"name": "variable.other.lolcode"
+				}
+			]
+		},
+      "operators": {
+        "patterns": [
+            {
+                "match": "\\+|-|\\*|/|%|>|<|=|!|\\?|:",
+                "name": "keyword.operator.lolcode"
+            },
+            {
+                "include": "#parentheses"
+            }
+        ]
+    },
+    "parentheses": {
+        "patterns": [
+            {
+                "match": "\\(|\\)",
+                "name": "punctuation.parenthesis.lolcode"
+            }
+        ]
+    }
+  }
+}

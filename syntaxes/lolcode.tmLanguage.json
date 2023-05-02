@@ -72,7 +72,7 @@
                   "name": "support.function.lolcode"
               },
 			  {
-                  "match": "\\b(?:HOW IZ I|HOW DUZ I)\\b",
+                  "match": "\\b(?:HOW IZ I|HOW I DUZ)\\b",
                   "name": "storage.type.function.lolcode"
               },
               {

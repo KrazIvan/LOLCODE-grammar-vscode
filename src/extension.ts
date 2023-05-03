@@ -34,24 +34,17 @@ interface IParsedToken {
 
 class DocumentSemanticTokensProvider implements vscode.DocumentSemanticTokensProvider {
 	async provideDocumentSemanticTokens(document: vscode.TextDocument, token: vscode.CancellationToken): Promise<vscode.SemanticTokens> {
-	  const allTokens = this._parseText(document.getText()); // Might not be needed anymore.
 	  const x = document.getText();
 	  const builder = new vscode.SemanticTokensBuilder(legend);
-  
-	  let functionNames = x.match(/(?:HOW IZ I|HOW DUZ I)\s+(\w+)/g)?.map(match => {
-		let result = match.match(/(?:HOW IZ I|HOW DUZ I)\s+(\w+)/);
-		if (result) {
-		  return result[1];
-		}
-		return null;
-	  }).filter(name => name !== null) || [];
+	  
+	  const functionNames = [...x.matchAll(/(?:HOW IZ I|HOW DUZ I)\s+(\w+)/g)].map(match => match[1]);
 	  console.log(functionNames) // testing (works)
 	  // highlight each function name as a function (Not working completely yet)
 	  for (const functionName of functionNames) {
 		const functionRegex = new RegExp('\\b' + functionName + '\\b', 'g');
 		let match;
 		while (match = functionRegex.exec(x)) {
-		  const range = new vscode.Range(document.positionAt(match.index), document.positionAt(match.index + functionName.length));
+		  const range = new vscode.Range(document.positionAt(match.index), document.positionAt(match.index + functionName?.length));
 		  builder.push(range, 'function', ['declaration']);
 		}
 	  }

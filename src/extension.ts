@@ -34,20 +34,19 @@ interface IParsedToken {
 
 class DocumentSemanticTokensProvider implements vscode.DocumentSemanticTokensProvider {
 	async provideDocumentSemanticTokens(document: vscode.TextDocument, token: vscode.CancellationToken): Promise<vscode.SemanticTokens> {
-	  const allTokens = this._parseText(document.getText());
+	  const allTokens = this._parseText(document.getText()); // Might not be needed anymore.
 	  const x = document.getText();
-	  const builder = new vscode.SemanticTokensBuilder();
+	  const builder = new vscode.SemanticTokensBuilder(legend);
   
-	  // match the first word after "HOW IZ I" or "HOW I DUZ"
-	  let functionNames = x.match(/(?:HOW IZ I|HOW I DUZ)\s+(\w+)/g)?.map(match => {
-		let result = match.match(/(?:HOW IZ I|HOW I DUZ)\s+(\w+)/);
+	  let functionNames = x.match(/(?:HOW IZ I|HOW DUZ I)\s+(\w+)/g)?.map(match => {
+		let result = match.match(/(?:HOW IZ I|HOW DUZ I)\s+(\w+)/);
 		if (result) {
 		  return result[1];
 		}
 		return null;
 	  }).filter(name => name !== null) || [];
 	  console.log(functionNames) // testing (works)
-	  // highlight each function name as a function (Not working yet)
+	  // highlight each function name as a function (Not working completely yet)
 	  for (const functionName of functionNames) {
 		const functionRegex = new RegExp('\\b' + functionName + '\\b', 'g');
 		let match;

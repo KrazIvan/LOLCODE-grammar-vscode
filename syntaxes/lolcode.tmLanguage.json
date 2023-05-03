@@ -53,7 +53,7 @@
       "keywords": {
           "patterns": [
               {
-                  "match": "(?:(?<=[^a-zA-Z0-9\\?])|(?:^))(HAI|KTHXBYE|WIN|FAIL|IS NOW A|ITZ A|ITZ|IS|IZ|AN|BIGGR|SMALLR|BOTH|EITHER|MAEK|WON|NOT|ALL|ANY|MKAY|IF U SAY SO|OIC|I HAS A|IM OUTTA YR|GTFO|WTF\\?|YA RLY|O RLY\\?|IM IN YR|YR|HAS A|NO WAI|FOUND|OF|R|I IZ|OMG|OMGWTF|A)(?:(?=[^a-zA-Z0-9\\?])|(?:$))",
+                  "match": "(?:(?<=[^a-zA-Z0-9\\?])|(?:^))(HAI|KTHXBYE|WIN|FAIL|IS NOW A|ITZ A|ITZ|IS|IZ|AN|BIGGR|SMALLR|EITHER|MAEK|WON|NOT|ALL|ANY|MKAY|IF U SAY SO|OIC|I HAS A|IM OUTTA YR|GTFO|WTF\\?|YA RLY|O RLY\\?|IM IN YR|YR|HAS A|NO WAI|FOUND|OF|R|I IZ|OMG|OMGWTF|A)(?:(?=[^a-zA-Z0-9\\?])|(?:$))",
                   "name": "keyword.control.lolcode"
               },
 			  {

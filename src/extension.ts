@@ -45,13 +45,20 @@ class DocumentSemanticTokensProvider implements vscode.DocumentSemanticTokensPro
 		let match;
 		while (match = functionRegex.exec(x)) {
 		  const range = new vscode.Range(document.positionAt(match.index), document.positionAt(match.index + functionName?.length));
+		  // check if the function name is inside a comment or a string (something's weird here)
+		  let beforeMatch = x.substring(0, match.index);
+		  let isInsideComment = /BTW(?:[^\\]|\\.)*$/.test(beforeMatch);
+		  let isInsideString = /(["'])(?:(?!\1)[^\\]|\\[\s\S])*\1/.test(beforeMatch);
+  
+		  // skips function names inside of comments and strings (not working)
+		  if (isInsideComment || isInsideString) {
+			continue;
+		  }
 		  builder.push(range, 'function', ['declaration']);
-		}
 	  }
-
+	}
 	  return builder.build();
 	}
-  
 
 	private _encodeTokenType(tokenType: string): number {
 		if (tokenTypes.has(tokenType)) {

@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 const tokenTypes = new Map<string, number>();
 const tokenModifiers = new Map<string, number>();
 
-const legend = (function() {
+const legend = (function () {
 	const tokenTypesLegend = [
 		'comment', 'string', 'keyword', 'number', 'regexp', 'operator', 'namespace',
 		'type', 'struct', 'class', 'interface', 'enum', 'typeParameter', 'function',
@@ -24,98 +24,86 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.languages.registerDocumentSemanticTokensProvider({ language: 'lolcode' }, new DocumentSemanticTokensProvider(), legend));
 }
 
-interface IParsedToken {
-	line: number;
-	startCharacter: number;
-	length: number;
-	tokenType: string;
-	tokenModifiers: string[];
-}
 
 class DocumentSemanticTokensProvider implements vscode.DocumentSemanticTokensProvider {
 	async provideDocumentSemanticTokens(document: vscode.TextDocument, token: vscode.CancellationToken): Promise<vscode.SemanticTokens> {
-	  const x = document.getText();
-	  const builder = new vscode.SemanticTokensBuilder(legend);
-	  
-	  const functionNames = [...x.matchAll(/(?:HOW IZ I|HOW DUZ I)\s+(\w+)/g)].map(match => match[1]);
-	  console.log(functionNames) // testing (works)
-	  // highlight each function name as a function (Not working completely yet)
-	  for (const functionName of functionNames) {
-		const functionRegex = new RegExp('\\b' + functionName + '\\b', 'g');
-		let match;
-		while (match = functionRegex.exec(x)) {
-		  const range = new vscode.Range(document.positionAt(match.index), document.positionAt(match.index + functionName?.length));
-		  // check if the function name is inside a comment or a string (something's weird here)
-		  let beforeMatch = x.substring(0, match.index);
-		  let isInsideComment = /BTW(?:[^\\]|\\.)*$/.test(beforeMatch);
-		  let isInsideString = /(["'])(?:(?!\1)[^\\]|\\[\s\S])*\1/.test(beforeMatch);
-  
-		  // skips function names inside of comments and strings (not working)
-		  if (isInsideComment || isInsideString) {
-			continue;
-		  }
-		  builder.push(range, 'function', ['declaration']);
-	  }
-	}
-	  return builder.build();
-	}
+		const text = document.getText();
+		const builder = new vscode.SemanticTokensBuilder(legend);
 
-	private _encodeTokenType(tokenType: string): number {
-		if (tokenTypes.has(tokenType)) {
-			return tokenTypes.get(tokenType)!;
-		} else if (tokenType === 'notInLegend') {
-			return tokenTypes.size + 2;
-		}
-		return 0;
-	}
+		const functionNames = [...text.matchAll(/(?:HOW IZ I|HOW DUZ I)\s+(\w+)/g)].map(match => match[1]);
 
-	private _encodeTokenModifiers(strTokenModifiers: string[]): number {
-		let result = 0;
-		for (let i = 0; i < strTokenModifiers.length; i++) {
-			const tokenModifier = strTokenModifiers[i];
-			if (tokenModifiers.has(tokenModifier)) {
-				result = result | (1 << tokenModifiers.get(tokenModifier)!);
-			} else if (tokenModifier === 'notInLegend') {
-				result = result | (1 << tokenModifiers.size + 2);
+	
+		var functionIndexes = [];
+
+		//console.log(functionNames) // testing (works)
+		
+		for (const functionName of functionNames) {
+			const functionRegex = new RegExp('\\b' + functionName + '\\b', 'g');
+			let match;
+			while (match = functionRegex.exec(text)) {
+				functionIndexes[match.index] = match.index + functionName?.length;
 			}
 		}
-		return result;
-	}
 
-	private _parseText(text: string): IParsedToken[] {
-		const r: IParsedToken[] = [];
+		let lineStartIndex = 0;
+		let multiCommentStartIndex = 0;
+		
 		const lines = text.split(/\r\n|\r|\n/);
 		for (let i = 0; i < lines.length; i++) {
-			const line = lines[i];
-			let currentOffset = 0;
-			do {
-				const openOffset = line.indexOf('[', currentOffset);
-				if (openOffset === -1) {
-					break;
-				}
-				const closeOffset = line.indexOf(']', openOffset);
-				if (closeOffset === -1) {
-					break;
-				}
-				const tokenData = this._parseTextToken(line.substring(openOffset + 1, closeOffset));
-				r.push({
-					line: i,
-					startCharacter: openOffset + 1,
-					length: closeOffset - openOffset - 1,
-					tokenType: tokenData.tokenType,
-					tokenModifiers: tokenData.tokenModifiers
-				});
-				currentOffset = closeOffset;
-			} while (true);
-		}
-		return r;
-	}
+			let line = lines[i];
 
-	private _parseTextToken(text: string): { tokenType: string; tokenModifiers: string[]; } {
-		const parts = text.split('.');
-		return {
-			tokenType: parts[0],
-			tokenModifiers: parts.slice(1)
-		};
+			let multiCommentEndRegex = new RegExp(/(?<!\\S)TLDR(?!\\S)/);
+			let multiCommentEndMatch = multiCommentEndRegex.exec(line);
+
+			if (multiCommentEndMatch) {
+				let matchEnd = lineStartIndex + multiCommentEndMatch.index + 4;
+				
+				for (let i = multiCommentStartIndex; i < matchEnd; i++) {
+					delete functionIndexes[i];
+				}
+			}
+
+			let multiCommentStartRegex = new RegExp(/(?<!\\S)OBTW(?!\\S)/);
+			let multiCommentStartmatch = multiCommentStartRegex.exec(line); 
+
+			if (multiCommentStartmatch) {
+				multiCommentStartIndex = lineStartIndex + multiCommentStartmatch.index;
+			}
+
+			let commentRegex = new RegExp(/\b(BTW)\b.*$/);
+			let match = commentRegex.exec(line);
+
+			if (match) {
+				let matchStart = lineStartIndex + match.index;
+				let matchEnd = lineStartIndex + line.length-1;
+				
+				for (let i = matchStart; i < matchEnd; i++) {
+					delete functionIndexes[i];
+				}
+			}
+
+			let stringRegex = new RegExp(/(["'])((?:\\\1|(?:(?!\1)).)*)(\1)/);
+			let stringMatch = stringRegex.exec(line);
+
+			if (stringMatch) {
+				let matchStart = lineStartIndex + stringMatch.index;
+				let matchEnd = lineStartIndex + line.length-1;
+				
+				for (let i = matchStart; i < matchEnd; i++) {
+					delete functionIndexes[i];
+				}
+			}
+
+			lineStartIndex += line.length;
+		}
+
+		for (let i = 0; i < functionIndexes.length; i++) {
+			if (functionIndexes[i]) {
+				var range = new vscode.Range(document.positionAt(i), document.positionAt(functionIndexes[i]));
+				builder.push(range, 'function', ['declaration']);
+			}
+		}
+
+		return builder.build();
 	}
 }

@@ -70,10 +70,10 @@ class DocumentSemanticTokensProvider implements vscode.DocumentSemanticTokensPro
             }
 
             let multiCommentStartRegex = new RegExp(/(?<!\\S)OBTW(?!\\S)/);
-            let multiCommentStartmatch = multiCommentStartRegex.exec(line);
+            let multiCommentStartMatch = multiCommentStartRegex.exec(line);
 
-            if (multiCommentStartmatch) {
-                multiCommentStartIndex = lineStartIndex + multiCommentStartmatch.index;
+            if (multiCommentStartMatch) {
+                multiCommentStartIndex = lineStartIndex + multiCommentStartMatch.index;
             }
 
             let commentRegex = new RegExp(/\b(BTW)\b.*$/);
@@ -108,8 +108,9 @@ class DocumentSemanticTokensProvider implements vscode.DocumentSemanticTokensPro
                 const range = new vscode.Range(document.positionAt(i), document.positionAt(functionIndexes[i] as number));
                 const isCommented = document.getWordRangeAtPosition(document.positionAt(i), commentRegex);
                 const isInString = isInsideString(document.positionAt(i), document);
+                const isMultiCommented = isInsideMultiComment(document.positionAt(i), document);
 
-                if (!isCommented && !isInString) {
+                if (!isCommented && !isInString && !isMultiCommented) {
                     builder.push(range, 'function', ['declaration']);
                 }
             }
@@ -135,4 +136,31 @@ function isInsideString(position: vscode.Position, document: vscode.TextDocument
     }
 
     return isInString;
+}
+
+function isInsideMultiComment(position: vscode.Position, document: vscode.TextDocument): boolean {
+    const line = document.lineAt(position.line).text;
+    const multiCommentStartRegex = /(?<!\\S)OBTW(?!\\S)/;
+    const multiCommentEndRegex = /(?<!\\S)TLDR(?!\\S)/;
+
+    const multiCommentStartMatch = multiCommentStartRegex.exec(line);
+    if (multiCommentStartMatch) {
+        return true;
+    }
+
+    let isInMultiComment = false;
+    for (let lineNumber = position.line - 1; lineNumber >= 0; lineNumber--) {
+        const currentLine = document.lineAt(lineNumber).text;
+
+        if (multiCommentEndRegex.test(currentLine)) {
+            break;
+        }
+
+        if (multiCommentStartRegex.test(currentLine)) {
+            isInMultiComment = true;
+            break;
+        }
+    }
+
+    return isInMultiComment;
 }

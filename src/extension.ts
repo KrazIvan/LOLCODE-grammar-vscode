@@ -25,94 +25,114 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 class DocumentSemanticTokensProvider implements vscode.DocumentSemanticTokensProvider {
-	async provideDocumentSemanticTokens(document: vscode.TextDocument, token: vscode.CancellationToken): Promise<vscode.SemanticTokens> {
-		const text = document.getText();
-		const builder = new vscode.SemanticTokensBuilder(legend);
+    async provideDocumentSemanticTokens(document: vscode.TextDocument, token: vscode.CancellationToken): Promise<vscode.SemanticTokens> {
+        const text = document.getText();
+        const builder = new vscode.SemanticTokensBuilder(legend);
 
-		const functionNames = [...text.matchAll(/(?:HOW IZ I|HOW DUZ I)\s+(\w+)/g)].map(match => match[1]);
+        const functionNames = [...text.matchAll(/(?:HOW IZ I|HOW DUZ I)\s+(\w+)/g)].map(match => match[1]);
 
-		const functionIndexes: (number | undefined)[] = [];
+        const functionIndexes: (number | undefined)[] = [];
 
-		const commentRegex = new RegExp('\\b(BTW)\\b.*$', 'g');
-		const commentMatches = [...text.matchAll(commentRegex)];
+        const commentRegex = new RegExp('\\b(BTW)\\b.*$', 'g');
+        const commentMatches = [...text.matchAll(commentRegex)];
 
-		for (const match of commentMatches) {
-			const commentIndex = match.index;
-			if (commentIndex !== undefined && commentIndex < functionIndexes.length) {
-				delete functionIndexes[commentIndex];
-			}
-		}
+        for (const match of commentMatches) {
+            const commentIndex = match.index;
+            if (commentIndex !== undefined && commentIndex < functionIndexes.length) {
+                delete functionIndexes[commentIndex];
+            }
+        }
 
-		for (const functionName of functionNames) {
-			const functionRegex = new RegExp('\\b' + functionName + '\\b', 'g');
-			let match;
-			while ((match = functionRegex.exec(text))) {
-				functionIndexes[match.index] = match.index + (functionName?.length || 0);
-			}
-		}
+        for (const functionName of functionNames) {
+            const functionRegex = new RegExp('\\b' + functionName + '\\b', 'g');
+            let match;
+            while ((match = functionRegex.exec(text))) {
+                functionIndexes[match.index] = match.index + (functionName?.length || 0);
+            }
+        }
 
-		let lineStartIndex = 0;
-		let multiCommentStartIndex = 0;
+        let lineStartIndex = 0;
+        let multiCommentStartIndex = 0;
 
-		const lines = text.split(/\r\n|\r|\n/);
-		for (let i = 0; i < lines.length; i++) {
-			let line = lines[i];
+        const lines = text.split(/\r\n|\r|\n/);
+        for (let i = 0; i < lines.length; i++) {
+            let line = lines[i];
 
-			let multiCommentEndRegex = new RegExp(/(?<!\\S)TLDR(?!\\S)/);
-			let multiCommentEndMatch = multiCommentEndRegex.exec(line);
+            let multiCommentEndRegex = new RegExp(/(?<!\\S)TLDR(?!\\S)/);
+            let multiCommentEndMatch = multiCommentEndRegex.exec(line);
 
-			if (multiCommentEndMatch) {
-				let matchEnd = lineStartIndex + multiCommentEndMatch.index + 4;
+            if (multiCommentEndMatch) {
+                let matchEnd = lineStartIndex + multiCommentEndMatch.index + 4;
 
-				for (let i = multiCommentStartIndex; i < matchEnd; i++) {
-					delete functionIndexes[i];
-				}
-			}
+                for (let i = multiCommentStartIndex; i < matchEnd; i++) {
+                    delete functionIndexes[i];
+                }
+            }
 
-			let multiCommentStartRegex = new RegExp(/(?<!\\S)OBTW(?!\\S)/);
-			let multiCommentStartmatch = multiCommentStartRegex.exec(line);
+            let multiCommentStartRegex = new RegExp(/(?<!\\S)OBTW(?!\\S)/);
+            let multiCommentStartmatch = multiCommentStartRegex.exec(line);
 
-			if (multiCommentStartmatch) {
-				multiCommentStartIndex = lineStartIndex + multiCommentStartmatch.index;
-			}
+            if (multiCommentStartmatch) {
+                multiCommentStartIndex = lineStartIndex + multiCommentStartmatch.index;
+            }
 
-			let commentRegex = new RegExp(/\b(BTW)\b.*$/);
-			let match = commentRegex.exec(line);
+            let commentRegex = new RegExp(/\b(BTW)\b.*$/);
+            let match = commentRegex.exec(line);
 
-			if (match) {
-				let matchStart = lineStartIndex + match.index;
-				let matchEnd = lineStartIndex + line.length - 1;
+            if (match) {
+                let matchStart = lineStartIndex + match.index;
+                let matchEnd = lineStartIndex + line.length - 1;
 
-				for (let i = matchStart; i < matchEnd; i++) {
-					delete functionIndexes[i];
-				}
-			}
+                for (let i = matchStart; i < matchEnd; i++) {
+                    delete functionIndexes[i];
+                }
+            }
 
-			let stringRegex = new RegExp(/(["'])((?:\\\1|(?:(?!\1)).)*)(\1)/);
-			let stringMatch = stringRegex.exec(line);
+            let stringRegex = new RegExp(/(["'])((?:\\\1|(?:(?!\1)).)*)(\1)/);
+            let stringMatch = stringRegex.exec(line);
 
-			if (stringMatch) {
-				let matchStart = lineStartIndex + stringMatch.index;
-				let matchEnd = lineStartIndex + line.length - 1;
+            if (stringMatch) {
+                let matchStart = lineStartIndex + stringMatch.index;
+                let matchEnd = lineStartIndex + line.length - 1;
 
-				for (let i = matchStart; i < matchEnd; i++) {
-					delete functionIndexes[i];
-				}
-			}
+                for (let i = matchStart; i < matchEnd; i++) {
+                    delete functionIndexes[i];
+                }
+            }
 
-			lineStartIndex += line.length;
-		}
+            lineStartIndex += line.length;
+        }
 
-		for (let i = 0; i < functionIndexes.length; i++) {
-			if (functionIndexes[i] !== undefined) {
-				const range = new vscode.Range(document.positionAt(i), document.positionAt(functionIndexes[i] as number));
-				const isCommented = document.getWordRangeAtPosition(document.positionAt(i), commentRegex);
-				if (!isCommented) {
-					builder.push(range, 'function', ['declaration']);
-				}
-			}
-		}
+        for (let i = 0; i < functionIndexes.length; i++) {
+            if (functionIndexes[i] !== undefined) {
+                const range = new vscode.Range(document.positionAt(i), document.positionAt(functionIndexes[i] as number));
+                const isCommented = document.getWordRangeAtPosition(document.positionAt(i), commentRegex);
+                const isInString = isInsideString(document.positionAt(i), document);
 
-		return builder.build();
-	}
+                if (!isCommented && !isInString) {
+                    builder.push(range, 'function', ['declaration']);
+                }
+            }
+        }
+
+        return builder.build();
+    }
+}
+
+function isInsideString(position: vscode.Position, document: vscode.TextDocument): boolean {
+    const line = document.lineAt(position.line).text;
+    const quoteRegex = /(["'])/g;
+
+    let isInString = false;
+    let match;
+    while ((match = quoteRegex.exec(line))) {
+        const quoteIndex = match.index;
+        if (position.character > quoteIndex) {
+            isInString = !isInString;
+        } else {
+            break;
+        }
+    }
+
+    return isInString;
 }

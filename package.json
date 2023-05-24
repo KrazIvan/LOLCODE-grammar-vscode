@@ -1,21 +1,22 @@
 {
   "name": "lolcode-grammar-vscode",
-  "displayName": "LOLCODE Grammar VSCode",
-  "description": "",
-  "version": "0.0.1",
+  "displayName": "LOLCODE Syntax",
+  "publisher": "IvanShabalin",
+  "description": "Syntax highlighter for the LOLCODE language in Visual Studio Code!",
+  "version": "1.0.0",
   "engines": {
     "vscode": "^1.77.0"
   },
   "categories": [
-    "Other"
+    "Programming Languages"
   ],
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
     "languages": [{
       "id": "lolcode",
-      "aliases": ["LOLCODE", "lolcode"],
-      "extensions": [".lol"],
+      "aliases": ["LOLCODE", "lolcode", "LOLCode", "LolCode"],
+      "extensions": [".lol,",".lols"],
       "configuration": "./language-configuration.json"
     }],
     "grammars": [{

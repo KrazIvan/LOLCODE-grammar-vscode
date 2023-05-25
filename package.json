@@ -3,7 +3,7 @@
   "displayName": "LOLCODE Syntax",
   "publisher": "IvanShabalin",
   "description": "Syntax highlighter for the LOLCODE language in Visual Studio Code!",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "MIT",
 	"icon": "assets/images/logo.png",
 	"repository": {

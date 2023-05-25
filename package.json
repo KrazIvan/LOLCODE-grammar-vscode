@@ -22,7 +22,7 @@
     "languages": [{
       "id": "lolcode",
       "aliases": ["LOLCODE", "lolcode", "LOLCode", "LolCode"],
-      "extensions": [".lol,",".lols"],
+      "extensions": [".lol",".lols"],
       "configuration": "./language-configuration.json"
     }],
     "grammars": [{
